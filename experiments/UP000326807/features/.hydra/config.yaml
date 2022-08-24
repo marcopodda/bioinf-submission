@@ -1,0 +1,71 @@
+proteome: UP000326807
+seed: 100
+workdir: ${hydra:runtime.cwd}
+ignore_warnings: true
+print_config: true
+print_hparams: true
+dataset:
+  _target_: src.data.dataset.FeaturesDataset
+  dim: 293
+  proteome: ${workdir}/data/features/test/${proteome}.pkl
+  species:
+    _target_: src.settings.infer_species
+    proteome: ${proteome}
+reduction:
+  _target_: src.utils.make_grid
+  options:
+  - reduction:
+    - passthrough
+  - reduction:
+    - _target_: sklearn.feature_selection.SelectKBest
+    reduction__score_func:
+    - _target_: hydra.utils.get_method
+      path: sklearn.feature_selection.mutual_info_classif
+    - _target_: hydra.utils.get_method
+      path: sklearn.feature_selection.f_classif
+    reduction__k:
+      _target_: numpy.linspace
+      start: 20
+      stop: 240
+      num: 12
+      dtype: int
+  - reduction:
+    - _target_: sklearn.decomposition.PCA
+    reduction__n_components:
+      _target_: numpy.linspace
+      start: 20
+      stop: 240
+      num: 12
+      dtype: int
+classifier:
+  _target_: src.utils.make_grid
+  options:
+  - scaling:
+    - _target_: sklearn.preprocessing.MinMaxScaler
+    clf:
+    - _target_: xgboost.XGBClassifier
+      objective: binary:logistic
+      nthread: 1
+      eval_metric: auc
+    clf__learning_rate:
+      _target_: scipy.stats.uniform
+      loc: 0.1
+      scale: 0.8
+    clf__n_estimators:
+      _target_: scipy.stats.randint
+      low: 120
+      high: 220
+    clf__max_depth:
+      _target_: scipy.stats.randint
+      low: 6
+      high: 10
+tuner:
+  _target_: sklearn.model_selection.RandomizedSearchCV
+  n_iter: 100
+  n_jobs: -1
+  verbose: 1
+  scoring:
+    _target_: src.evaluation.metrics.get_scorers
+    _convert_: all
+  refit: auroc
+  return_train_score: true

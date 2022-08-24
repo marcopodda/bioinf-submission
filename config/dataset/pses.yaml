@@ -1,0 +1,6 @@
+_target_: src.data.dataset.EmbeddingDataset
+dim: 1280
+proteome: ${workdir}/data/pses/test/${proteome}.pkl
+species:
+  _target_: src.settings.infer_species
+  proteome: ${proteome}

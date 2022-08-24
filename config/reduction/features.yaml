@@ -1,0 +1,25 @@
+_target_: src.utils.make_grid
+options:
+  - reduction:
+      - passthrough
+  - reduction:
+      - _target_: sklearn.feature_selection.SelectKBest
+    reduction__score_func:
+      - _target_: hydra.utils.get_method
+        path: sklearn.feature_selection.mutual_info_classif
+      - _target_: hydra.utils.get_method
+        path: sklearn.feature_selection.f_classif
+    reduction__k:
+      _target_: numpy.linspace
+      start: 20
+      stop: 240
+      num: 12
+      dtype: int
+  - reduction:
+      - _target_: sklearn.decomposition.PCA
+    reduction__n_components:
+      _target_: numpy.linspace
+      start: 20
+      stop: 240
+      num: 12
+      dtype: int

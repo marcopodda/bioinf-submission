@@ -1,0 +1,6 @@
+_target_: src.data.dataset.FeaturesDataset
+dim: 293
+proteome: ${workdir}/data/features/test/${proteome}.pkl
+species:
+  _target_: src.settings.infer_species
+  proteome: ${proteome}

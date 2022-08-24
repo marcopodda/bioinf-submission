@@ -1,0 +1,14 @@
+# @package _global_
+
+# specify here default training configuration
+defaults:
+  - _self_
+  - experiment: pses.yaml
+  - tuner: default.yaml
+
+proteome: null
+seed: 1
+workdir: ${hydra:runtime.cwd}
+ignore_warnings: true
+print_config: true
+print_hparams: true

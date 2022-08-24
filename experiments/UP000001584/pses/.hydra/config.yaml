@@ -1,0 +1,65 @@
+proteome: UP000001584
+seed: 98
+workdir: ${hydra:runtime.cwd}
+ignore_warnings: true
+print_config: true
+print_hparams: true
+dataset:
+  _target_: src.data.dataset.EmbeddingDataset
+  dim: 1280
+  proteome: ${workdir}/data/pses/test/${proteome}.pkl
+  species:
+    _target_: src.settings.infer_species
+    proteome: ${proteome}
+reduction:
+  _target_: src.utils.make_grid
+  options:
+    - reduction:
+        - passthrough
+    - reduction:
+        - _target_: sklearn.feature_selection.SelectKBest
+      reduction__score_func:
+        - _target_: hydra.utils.get_method
+          path: sklearn.feature_selection.mutual_info_classif
+        - _target_: hydra.utils.get_method
+          path: sklearn.feature_selection.f_classif
+      reduction__k:
+        _target_: numpy.linspace
+        start: 20
+        stop: 1000
+        num: 50
+        dtype: int
+    - reduction:
+        - _target_: sklearn.decomposition.PCA
+      reduction__n_components:
+        _target_: numpy.linspace
+        start: 20
+        stop: 1000
+        num: 50
+        dtype: int
+classifier:
+  _target_: src.utils.make_grid
+  options:
+    - scaling:
+        - passthrough
+    - clf:
+        - _target_: sklearn.svm.SVC
+          probability: true
+      clf__C:
+        _target_: scipy.stats.loguniform
+        a: 0.1
+        b: 1.0
+      clf__gamma:
+        _target_: scipy.stats.loguniform
+        a: 0.01
+        b: 1.0
+tuner:
+  _target_: sklearn.model_selection.RandomizedSearchCV
+  n_iter: 100
+  n_jobs: -1
+  verbose: 1
+  scoring:
+    _target_: src.evaluation.metrics.get_scorers
+    _convert_: all
+  refit: auroc
+  return_train_score: true

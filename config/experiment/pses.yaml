@@ -1,0 +1,12 @@
+# @package _global_
+
+# to execute this experiment run:
+# python run.py experiment=pses
+
+defaults:
+  - /dataset: pses.yaml
+  - /reduction: pses.yaml
+  - /classifier: pses.yaml
+  - /logdir: pses.yaml
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
